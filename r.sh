@@ -1,0 +1,1 @@
+chmod a+rx ./mapedit.jar
