@@ -3,7 +3,6 @@
     <output-path>$PROJECT_DIR$/</output-path>
     <root id="archive" name="mapedit.jar">
       <element id="module-output" name="mapedit" />
-      <element id="extracted-dir" path="$USER_HOME$/Dokumente/java/TuddyLIB.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

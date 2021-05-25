@@ -1,18 +1,16 @@
 package tudbut.mapedit;
 
 import de.tudbut.tools.FileRW;
-import de.tudbut.tools.Keyboard;
 import de.tudbut.tools.Tools;
 import de.tudbut.type.StringArray;
+import tudbut.parsing.AddressedTCN;
 import tudbut.parsing.TCN;
 import tudbut.tools.JButtonList;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileView;
-import java.awt.event.KeyEvent;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -20,18 +18,24 @@ import java.util.Stack;
 public class Main {
     private static final Stack<String> mapKeyStack = new Stack<>();
     private static final Stack<Map<String, String>> mapStack = new Stack<>();
-    private static FileRW file;
-    private static JFrame frame;
+    static FileRW file;
+    static JFrame frame;
+    static JPanel panel;
     
-    private enum Type {
+    static Type type;
+    static JButtonList list;
+    
+    enum Type {
         TCN,
         MAP,
         TCNMAP,
+        ADDRTCN,
+        ADDRTCNMAP,
+        JSON,
+        JSON_READABLE,
     }
     
-    private static Type type;
-    
-    private static String file(boolean b) {
+    static String file(boolean b) {
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new File(".").getAbsoluteFile());
         chooser.setMultiSelectionEnabled(false);
@@ -51,10 +55,11 @@ public class Main {
     }
     
     public static void main(String[] args) {
-        frame = new JFrame("MapEdit v2.1.1");
-        JButtonList list = new JButtonList(frame);
-        
+        frame = new JFrame("MapEdit v3.0.0");
+        list = new JButtonList(frame);
+    
         list.addButton(new JButton("Load Map"), (jButton, jPanel, jButtonList) -> {
+            panel = jPanel;
             type = Type.MAP;
             String mapFile = file(true); //JOptionPane.showInputDialog("Please input a map file: ")
             try {
@@ -74,56 +79,60 @@ public class Main {
             }
         });
         list.addButton(new JButton("Load TCNMap"), (jButton, jPanel, jButtonList) -> {
-            type = Type.TCNMAP;
-            String mapFile = file(true); //JOptionPane.showInputDialog("Please input a TCNMap file: ")
-            try {
-                if(mapFile == null)
-                    throw new NullPointerException();
-                mapStack.push(load((file = new FileRW(mapFile)).getContent().join("\n"), false));
-                mapKeyStack.push("");
-                if(mapStack.peek() == null) {
-                    JOptionPane.showMessageDialog(null, "Thats not a TCNMap!");
-                    return;
-                }
-                jPanel.removeAll();
-                jPanel.repaint();
-                display(list, mapStack.peek());
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "Thats not a TCNMap file!");
-            }
+            TCNFormats.go(Type.TCNMAP);
         });
         list.addButton(new JButton("Load TCN"), (jButton, jPanel, jButtonList) -> {
-            type = Type.TCN;
-            String mapFile = file(true); //JOptionPane.showInputDialog("Please input a TCN file: ")
-            try {
-                if(mapFile == null)
-                    throw new NullPointerException();
-                mapStack.push(load((file = new FileRW(mapFile)).getContent().join("\n"), false));
-                mapKeyStack.push("");
-                if(mapStack.peek() == null) {
-                    JOptionPane.showMessageDialog(null, "Thats not a TCN!");
-                    return;
-                }
-                jPanel.removeAll();
-                jPanel.repaint();
-                display(list, mapStack.peek());
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "Thats not a TCN file!");
-            }
+            TCNFormats.go(Type.TCN);
         });
-    
+        list.addButton(new JButton("Load AddressedTCN"), (jButton, jPanel, jButtonList) -> {
+            panel = jPanel;
+            TCNFormats.go(Type.ADDRTCN);
+        });
+        list.addButton(new JButton("Load AddressedTCNMAP"), (jButton, jPanel, jButtonList) -> {
+            panel = jPanel;
+            TCNFormats.go(Type.ADDRTCNMAP);
+        });
+        list.addButton(new JButton("Load JSON"), (jButton, jPanel, jButtonList) -> {
+            panel = jPanel;
+            TCNFormats.go(Type.JSON);
+        });
+        list.addButton(new JButton("Load JSONReadable"), (jButton, jPanel, jButtonList) -> {
+            panel = jPanel;
+            TCNFormats.go(Type.JSON_READABLE);
+        });
+        
+        list.pane.add(Box.createRigidArea(new Dimension(0, 10)));
+        
         list.addButton(new JButton("Create Map"), (jButton, jPanel, jButtonList) -> {
+            panel = jPanel;
             type = Type.MAP;
             create(jPanel, list);
         });
         list.addButton(new JButton("Create TCNMap"), (jButton, jPanel, jButtonList) -> {
-            type = Type.TCNMAP;
-            create(jPanel, list);
+            panel = jPanel;
+            TCNFormats.create(Type.TCNMAP);
         });
         list.addButton(new JButton("Create TCN"), (jButton, jPanel, jButtonList) -> {
-            type = Type.TCN;
-            create(jPanel, list);
+            panel = jPanel;
+            TCNFormats.create(Type.TCN);
         });
+        list.addButton(new JButton("Create AddressedTCN"), (jButton, jPanel, jButtonList) -> {
+            panel = jPanel;
+            TCNFormats.create(Type.ADDRTCN);
+        });
+        list.addButton(new JButton("Create AddressedTCNMAP"), (jButton, jPanel, jButtonList) -> {
+            panel = jPanel;
+            TCNFormats.create(Type.ADDRTCNMAP);
+        });
+        list.addButton(new JButton("Create JSON"), (jButton, jPanel, jButtonList) -> {
+            panel = jPanel;
+            TCNFormats.create(Type.JSON);
+        });
+        list.addButton(new JButton("Create JSONReadable"), (jButton, jPanel, jButtonList) -> {
+            panel = jPanel;
+            TCNFormats.create(Type.JSON_READABLE);
+        });
+        
         frame.setSize(500,500);
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -208,6 +217,20 @@ public class Main {
                 try {
                     TCN m = TCN.read(map);
                     return m.map.size() == 0 ? null : m.toMap();
+                } catch (Exception e) {
+                    return null;
+                }
+            case ADDRTCN:
+                try {
+                    TCN m = TCN.read(map);
+                    return m.map.size() == 0 ? null : m.toMap();
+                } catch (Exception e) {
+                    return null;
+                }
+            case ADDRTCNMAP:
+                try {
+                    Map<String, String> m = Tools.stringToMap(map);
+                    return m.isEmpty() ? null : AddressedTCN.addressedToNormal(TCN.readMap(m)).toMap();
                 } catch (Exception e) {
                     return null;
                 }
