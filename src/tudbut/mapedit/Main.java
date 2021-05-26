@@ -26,8 +26,8 @@ public class Main {
     static JButtonList list;
     
     enum Type {
-        TCN,
         MAP,
+        TCN,
         TCNMAP,
         ADDRTCN,
         ADDRTCNMAP,
@@ -55,7 +55,7 @@ public class Main {
     }
     
     public static void main(String[] args) {
-        frame = new JFrame("MapEdit v3.1.2");
+        frame = new JFrame("MapEdit v3.3.0");
         list = new JButtonList(frame);
     
         list.addButton(new JButton("Load Map"), (jButton, jPanel, jButtonList) -> {
