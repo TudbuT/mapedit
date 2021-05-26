@@ -55,7 +55,7 @@ public class Main {
     }
     
     public static void main(String[] args) {
-        frame = new JFrame("MapEdit v3.1.1");
+        frame = new JFrame("MapEdit v3.1.2");
         list = new JButtonList(frame);
     
         list.addButton(new JButton("Load Map"), (jButton, jPanel, jButtonList) -> {
