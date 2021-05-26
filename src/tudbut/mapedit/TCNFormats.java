@@ -6,6 +6,7 @@ import de.tudbut.type.StringArray;
 import tudbut.parsing.AddressedTCN;
 import tudbut.parsing.JSON;
 import tudbut.parsing.TCN;
+import tudbut.parsing.TCNArray;
 import tudbut.tools.JButtonList;
 
 import javax.swing.*;
@@ -39,8 +40,6 @@ public class TCNFormats {
                     mapStack.push(AddressedTCN.addressedToNormal(TCN.readMap(Tools.stringToMap(s))));
                     break;
                 case JSON:
-                    mapStack.push(JSON.read(s));
-                    break;
                 case JSON_READABLE:
                     mapStack.push(JSON.read(s));
                     break;
@@ -50,6 +49,7 @@ public class TCNFormats {
             panel.repaint();
             display(list);
         } catch (Exception e) {
+            e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Thats not a " + type + " file!");
         }
     }
@@ -78,11 +78,15 @@ public class TCNFormats {
     private static void display(JButtonList list) {
         list.pane.removeAll();
         list.pane.repaint();
+        boolean array = mapStack.peek().isArray;
         list.addButton(new JButton("Back"), (jButton, jPanel, jButtonList) -> {
             try {
                 mapStack.get(mapStack.size() - 2).set(mapKeyStack.pop(), mapStack.pop());
                 display(jButtonList);
             } catch (Exception e) {
+                for (String key : mapStack.get(0).map.keys()) {
+                    TCN.deepConvert(key, mapStack.get(0).get(key), mapStack.get(0));
+                }
                 if (type == Type.TCN) {
                     try {
                         file.setContent(mapStack.get(0).toString());
@@ -141,18 +145,39 @@ public class TCNFormats {
             }
         });
         list.addButton(new JButton("New val"), (jButton, jPanel, jButtonList) -> {
-            String s = JOptionPane.showInputDialog("NEW KEY");
+            String s;
+            if(array)
+                s = String.valueOf(mapStack.peek().map.size());
+            else
+                s = JOptionPane.showInputDialog("NEW KEY");
             if(s == null)
                 return;
             mapStack.peek().set(s, "");
             display(jButtonList);
         });
         list.addButton(new JButton("New sub"), (jButton, jPanel, jButtonList) -> {
-            String s = JOptionPane.showInputDialog("NEW KEY");
+            String s;
+            if(array)
+                s = String.valueOf(mapStack.peek().map.size());
+            else
+                s = JOptionPane.showInputDialog("NEW KEY");
             if(s == null)
                 return;
             mapKeyStack.push(s);
             mapStack.push(new TCN());
+            mapStack.get(mapStack.size() - 2).set(s, mapStack.peek());
+            display(jButtonList);
+        });
+        list.addButton(new JButton("New array"), (jButton, jPanel, jButtonList) -> {
+            String s;
+            if(array)
+                s = String.valueOf(mapStack.peek().map.size());
+            else
+                s = JOptionPane.showInputDialog("NEW KEY");
+            if(s == null)
+                return;
+            mapKeyStack.push(s);
+            mapStack.push(new TCNArray().toTCN());
             mapStack.get(mapStack.size() - 2).set(s, mapStack.peek());
             display(jButtonList);
         });
@@ -169,12 +194,14 @@ public class TCNFormats {
             if(key == null || newKey == null)
                 return;
             try {
+                if(array)
+                    Integer.parseInt(newKey);
                 Object o = mapStack.peek().get(key);
                 if(o == null)
                     return;
                 mapStack.peek().set(newKey, o);
                 mapStack.peek().set(key, null);
-            } catch (NullPointerException ignored) { }
+            } catch (Exception ignored) { }
             display(jButtonList);
         });
         list.addButton(new JButton("Copy"), (jButton, jPanel, jButtonList) -> {
@@ -183,6 +210,8 @@ public class TCNFormats {
             if(key == null || newKey == null)
                 return;
             try {
+                if(array)
+                    Integer.parseInt(newKey);
                 Object o = mapStack.peek().get(key);
                 if(o == null)
                     return;
@@ -194,8 +223,15 @@ public class TCNFormats {
     
         for (String key : mapStack.peek().map.keys()) {
             if(mapStack.peek().getSub(key) != null) {
-                list.addButton(new JButton("[SUB] " + key), (jButton, jPanel, jButtonList) -> {
+                list.addButton(new JButton((mapStack.peek().getSub(key).isArray ? "[ARA] " : "[SUB] ") + key), (jButton, jPanel, jButtonList) -> {
                     mapStack.push(mapStack.peek().getSub(key));
+                    mapKeyStack.push(key);
+                    display(list);
+                });
+            }
+            else if(mapStack.peek().getArray(key) != null) {
+                list.addButton(new JButton("[ARA] " + key), (jButton, jPanel, jButtonList) -> {
+                    mapStack.push(mapStack.peek().getArray(key).toTCN());
                     mapKeyStack.push(key);
                     display(list);
                 });

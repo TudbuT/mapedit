@@ -55,7 +55,7 @@ public class Main {
     }
     
     public static void main(String[] args) {
-        frame = new JFrame("MapEdit v3.0.0");
+        frame = new JFrame("MapEdit v3.1.0");
         list = new JButtonList(frame);
     
         list.addButton(new JButton("Load Map"), (jButton, jPanel, jButtonList) -> {
@@ -79,9 +79,11 @@ public class Main {
             }
         });
         list.addButton(new JButton("Load TCNMap"), (jButton, jPanel, jButtonList) -> {
+            panel = jPanel;
             TCNFormats.go(Type.TCNMAP);
         });
         list.addButton(new JButton("Load TCN"), (jButton, jPanel, jButtonList) -> {
+            panel = jPanel;
             TCNFormats.go(Type.TCN);
         });
         list.addButton(new JButton("Load AddressedTCN"), (jButton, jPanel, jButtonList) -> {
@@ -210,27 +212,6 @@ public class Main {
                 try {
                     Map<String, String> m = Tools.stringToMap(map);
                     return m.isEmpty() ? null : m;
-                } catch (Exception e) {
-                    return null;
-                }
-            case TCN:
-                try {
-                    TCN m = TCN.read(map);
-                    return m.map.size() == 0 ? null : m.toMap();
-                } catch (Exception e) {
-                    return null;
-                }
-            case ADDRTCN:
-                try {
-                    TCN m = TCN.read(map);
-                    return m.map.size() == 0 ? null : m.toMap();
-                } catch (Exception e) {
-                    return null;
-                }
-            case ADDRTCNMAP:
-                try {
-                    Map<String, String> m = Tools.stringToMap(map);
-                    return m.isEmpty() ? null : AddressedTCN.addressedToNormal(TCN.readMap(m)).toMap();
                 } catch (Exception e) {
                     return null;
                 }
