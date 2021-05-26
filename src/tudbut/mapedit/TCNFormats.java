@@ -84,12 +84,31 @@ public class TCNFormats {
                 mapStack.get(mapStack.size() - 2).set(mapKeyStack.pop(), mapStack.pop());
                 display(jButtonList);
             } catch (Exception e) {
-                for (String key : mapStack.get(0).map.keys()) {
-                    TCN.deepConvert(key, mapStack.get(0).get(key), mapStack.get(0));
+                TCN toWrite = new TCN();
+                if (type == Type.TCN) {
+                    toWrite = mapStack.peek();
+                }
+                else if(type == Type.TCNMAP) {
+                    toWrite = mapStack.peek();
+                }
+                else if(type == Type.ADDRTCN) {
+                    toWrite = AddressedTCN.normalToAddressed(mapStack.peek());
+                }
+                else if(type == Type.ADDRTCNMAP) {
+                    toWrite = AddressedTCN.normalToAddressed(mapStack.peek());
+                }
+                else if(type == Type.JSON) {
+                    toWrite = mapStack.peek();
+                }
+                else if(type == Type.JSON_READABLE) {
+                    toWrite = mapStack.peek();
+                }
+                for (String key : toWrite.map.keys()) {
+                    TCN.deepConvert(key, toWrite.get(key), toWrite);
                 }
                 if (type == Type.TCN) {
                     try {
-                        file.setContent(mapStack.get(0).toString());
+                        file.setContent(toWrite.toString());
                     }
                     catch (IOException ioException) {
                         ioException.printStackTrace();
@@ -97,7 +116,7 @@ public class TCNFormats {
                 }
                 else if(type == Type.TCNMAP) {
                     try {
-                        file.setContent(Tools.mapToString(mapStack.get(0).toMap()));
+                        file.setContent(Tools.mapToString(toWrite.toMap()));
                     }
                     catch (IOException ioException) {
                         ioException.printStackTrace();
@@ -105,7 +124,7 @@ public class TCNFormats {
                 }
                 else if(type == Type.ADDRTCN) {
                     try {
-                        file.setContent(AddressedTCN.normalToAddressed(mapStack.get(0)).toString());
+                        file.setContent(toWrite.toString());
                     }
                     catch (IOException ioException) {
                         ioException.printStackTrace();
@@ -113,7 +132,7 @@ public class TCNFormats {
                 }
                 else if(type == Type.ADDRTCNMAP) {
                     try {
-                        file.setContent(Tools.mapToString(AddressedTCN.normalToAddressed(mapStack.get(0)).toMap()));
+                        file.setContent(Tools.mapToString(toWrite.toMap()));
                     }
                     catch (IOException ioException) {
                         ioException.printStackTrace();
@@ -121,7 +140,7 @@ public class TCNFormats {
                 }
                 else if(type == Type.JSON) {
                     try {
-                        file.setContent(JSON.write(mapStack.get(0)));
+                        file.setContent(JSON.write(toWrite));
                     }
                     catch (IOException ioException) {
                         ioException.printStackTrace();
@@ -129,7 +148,7 @@ public class TCNFormats {
                 }
                 else if(type == Type.JSON_READABLE) {
                     try {
-                        file.setContent(JSON.writeReadable(mapStack.get(0)));
+                        file.setContent(JSON.writeReadable(toWrite));
                     }
                     catch (IOException ioException) {
                         ioException.printStackTrace();
