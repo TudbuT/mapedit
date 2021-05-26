@@ -7,12 +7,14 @@ import tudbut.parsing.AddressedTCN;
 import tudbut.parsing.TCN;
 import tudbut.tools.JButtonList;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Stack;
 
 public class Main {
@@ -55,7 +57,12 @@ public class Main {
     }
     
     public static void main(String[] args) {
-        frame = new JFrame("MapEdit v3.3.1");
+        frame = new JFrame("MapEdit v3.3.2");
+        try {
+            frame.setIconImage(ImageIO.read(Objects.requireNonNull(ClassLoader.getSystemResourceAsStream("icon.png"))));
+        } catch (Exception e) {
+            System.out.println("Failed to load icon.png");
+        }
         list = new JButtonList(frame);
     
         list.addButton(new JButton("Load Map"), (jButton, jPanel, jButtonList) -> {
