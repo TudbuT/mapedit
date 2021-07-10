@@ -55,93 +55,148 @@ public class Main {
         }
         return null;
     }
-    
+
+    public static void openFileANY(String name) {
+        try {
+            String extension = name.substring(name.lastIndexOf(".") + 1);
+            openFile(name, extension);
+        }
+        catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Failed to open this file. Make sure it is compatible!");
+            System.exit(1);
+        }
+    }
+
+    public static void openFile(String name, String type) {
+        Type theType = null;
+        for (int i = 0; i < Type.values().length; i++) {
+            if(Type.values()[i].name().equalsIgnoreCase(type)) {
+                theType = Type.values()[i];
+            }
+        }
+        if(theType == null) {
+            JOptionPane.showMessageDialog(null, "Failed to open this file. Make sure it is compatible!");
+            System.exit(1);
+        }
+        else {
+            try {
+                if (theType != Type.MAP) {
+                    if (!TCNFormats.go(theType, name))
+                        System.exit(1);
+                } else {
+                    mapStack.push(load((file = new FileRW(name)).getContent().join("\n"), false));
+                    mapKeyStack.push("");
+                    if (mapStack.peek() == null) {
+                        JOptionPane.showMessageDialog(null, "Thats not a map!");
+                        return;
+                    }
+                    panel.removeAll();
+                    panel.repaint();
+                    display(list, mapStack.peek());
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Failed to open this file. Make sure it is compatible!");
+                System.exit(1);
+            }
+        }
+    }
+
     public static void main(String[] args) {
-        frame = new JFrame("MapEdit v3.3.2");
+        frame = new JFrame("MapEdit v3.4.0");
         try {
             frame.setIconImage(ImageIO.read(Objects.requireNonNull(ClassLoader.getSystemResourceAsStream("icon.png"))));
         } catch (Exception e) {
             System.out.println("Failed to load icon.png");
         }
         list = new JButtonList(frame);
-    
-        list.addButton(new JButton("Load Map"), (jButton, jPanel, jButtonList) -> {
-            panel = jPanel;
-            type = Type.MAP;
-            String mapFile = file(true); //JOptionPane.showInputDialog("Please input a map file: ")
-            try {
-                if(mapFile == null)
-                    throw new NullPointerException();
-                mapStack.push(load((file = new FileRW(mapFile)).getContent().join("\n"), false));
-                mapKeyStack.push("");
-                if(mapStack.peek() == null) {
-                    JOptionPane.showMessageDialog(null, "Thats not a map!");
-                    return;
+
+        panel = list.pane;
+
+        if(args.length == 1) {
+            openFileANY(args[0]);
+        }
+        else if(args.length == 2) {
+            openFile(args[0], args[1]);
+        }
+        else {
+
+            list.addButton(new JButton("Load Map"), (jButton, jPanel, jButtonList) -> {
+                panel = jPanel;
+                type = Type.MAP;
+                String mapFile = file(true); //JOptionPane.showInputDialog("Please input a map file: ")
+                try {
+                    if (mapFile == null)
+                        throw new NullPointerException();
+                    mapStack.push(load((file = new FileRW(mapFile)).getContent().join("\n"), false));
+                    mapKeyStack.push("");
+                    if (mapStack.peek() == null) {
+                        JOptionPane.showMessageDialog(null, "Thats not a map!");
+                        return;
+                    }
+                    jPanel.removeAll();
+                    jPanel.repaint();
+                    display(list, mapStack.peek());
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "Thats not a map file!");
                 }
-                jPanel.removeAll();
-                jPanel.repaint();
-                display(list, mapStack.peek());
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "Thats not a map file!");
-            }
-        });
-        list.addButton(new JButton("Load TCNMap"), (jButton, jPanel, jButtonList) -> {
-            panel = jPanel;
-            TCNFormats.go(Type.TCNMAP);
-        });
-        list.addButton(new JButton("Load TCN"), (jButton, jPanel, jButtonList) -> {
-            panel = jPanel;
-            TCNFormats.go(Type.TCN);
-        });
-        list.addButton(new JButton("Load AddressedTCN"), (jButton, jPanel, jButtonList) -> {
-            panel = jPanel;
-            TCNFormats.go(Type.ADDRTCN);
-        });
-        list.addButton(new JButton("Load AddressedTCNMAP"), (jButton, jPanel, jButtonList) -> {
-            panel = jPanel;
-            TCNFormats.go(Type.ADDRTCNMAP);
-        });
-        list.addButton(new JButton("Load JSON"), (jButton, jPanel, jButtonList) -> {
-            panel = jPanel;
-            TCNFormats.go(Type.JSON);
-        });
-        list.addButton(new JButton("Load JSONReadable"), (jButton, jPanel, jButtonList) -> {
-            panel = jPanel;
-            TCNFormats.go(Type.JSON_READABLE);
-        });
-        
-        list.pane.add(Box.createRigidArea(new Dimension(0, 10)));
-        
-        list.addButton(new JButton("Create Map"), (jButton, jPanel, jButtonList) -> {
-            panel = jPanel;
-            type = Type.MAP;
-            create(jPanel, list);
-        });
-        list.addButton(new JButton("Create TCNMap"), (jButton, jPanel, jButtonList) -> {
-            panel = jPanel;
-            TCNFormats.create(Type.TCNMAP);
-        });
-        list.addButton(new JButton("Create TCN"), (jButton, jPanel, jButtonList) -> {
-            panel = jPanel;
-            TCNFormats.create(Type.TCN);
-        });
-        list.addButton(new JButton("Create AddressedTCN"), (jButton, jPanel, jButtonList) -> {
-            panel = jPanel;
-            TCNFormats.create(Type.ADDRTCN);
-        });
-        list.addButton(new JButton("Create AddressedTCNMAP"), (jButton, jPanel, jButtonList) -> {
-            panel = jPanel;
-            TCNFormats.create(Type.ADDRTCNMAP);
-        });
-        list.addButton(new JButton("Create JSON"), (jButton, jPanel, jButtonList) -> {
-            panel = jPanel;
-            TCNFormats.create(Type.JSON);
-        });
-        list.addButton(new JButton("Create JSONReadable"), (jButton, jPanel, jButtonList) -> {
-            panel = jPanel;
-            TCNFormats.create(Type.JSON_READABLE);
-        });
-        
+            });
+            list.addButton(new JButton("Load TCNMap"), (jButton, jPanel, jButtonList) -> {
+                panel = jPanel;
+                TCNFormats.go(Type.TCNMAP);
+            });
+            list.addButton(new JButton("Load TCN"), (jButton, jPanel, jButtonList) -> {
+                panel = jPanel;
+                TCNFormats.go(Type.TCN);
+            });
+            list.addButton(new JButton("Load AddressedTCN"), (jButton, jPanel, jButtonList) -> {
+                panel = jPanel;
+                TCNFormats.go(Type.ADDRTCN);
+            });
+            list.addButton(new JButton("Load AddressedTCNMAP"), (jButton, jPanel, jButtonList) -> {
+                panel = jPanel;
+                TCNFormats.go(Type.ADDRTCNMAP);
+            });
+            list.addButton(new JButton("Load JSON"), (jButton, jPanel, jButtonList) -> {
+                panel = jPanel;
+                TCNFormats.go(Type.JSON);
+            });
+            list.addButton(new JButton("Load JSONReadable"), (jButton, jPanel, jButtonList) -> {
+                panel = jPanel;
+                TCNFormats.go(Type.JSON_READABLE);
+            });
+
+            list.pane.add(Box.createRigidArea(new Dimension(0, 10)));
+
+            list.addButton(new JButton("Create Map"), (jButton, jPanel, jButtonList) -> {
+                panel = jPanel;
+                type = Type.MAP;
+                create(jPanel, list);
+            });
+            list.addButton(new JButton("Create TCNMap"), (jButton, jPanel, jButtonList) -> {
+                panel = jPanel;
+                TCNFormats.create(Type.TCNMAP);
+            });
+            list.addButton(new JButton("Create TCN"), (jButton, jPanel, jButtonList) -> {
+                panel = jPanel;
+                TCNFormats.create(Type.TCN);
+            });
+            list.addButton(new JButton("Create AddressedTCN"), (jButton, jPanel, jButtonList) -> {
+                panel = jPanel;
+                TCNFormats.create(Type.ADDRTCN);
+            });
+            list.addButton(new JButton("Create AddressedTCNMAP"), (jButton, jPanel, jButtonList) -> {
+                panel = jPanel;
+                TCNFormats.create(Type.ADDRTCNMAP);
+            });
+            list.addButton(new JButton("Create JSON"), (jButton, jPanel, jButtonList) -> {
+                panel = jPanel;
+                TCNFormats.create(Type.JSON);
+            });
+            list.addButton(new JButton("Create JSONReadable"), (jButton, jPanel, jButtonList) -> {
+                panel = jPanel;
+                TCNFormats.create(Type.JSON_READABLE);
+            });
+        }
         frame.setSize(500,500);
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -254,7 +309,7 @@ public class Main {
                 frame.dispose();
                 frame.setVisible(false);
                 frame = null;
-                new Thread(() -> main(null)).start();
+                new Thread(() -> main(new String[0])).start();
             }
         });
         list.addButton(new JButton("New val"), (jButton, jPanel, jButtonList) -> {

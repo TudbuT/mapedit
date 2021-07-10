@@ -53,6 +53,42 @@ public class TCNFormats {
             JOptionPane.showMessageDialog(null, "Thats not a " + type + " file!");
         }
     }
+
+    public static boolean go(Type type, String file) {
+        try {
+            if (file == null)
+                throw new NullPointerException();
+            String s = (Main.file = new FileRW(file)).getContent().join("\n");
+            Main.type = type;
+            switch (type) {
+                case TCN:
+                    mapStack.push(TCN.read(s));
+                    break;
+                case TCNMAP:
+                    mapStack.push(TCN.readMap(Tools.stringToMap(s)));
+                    break;
+                case ADDRTCN:
+                    mapStack.push(AddressedTCN.addressedToNormal(TCN.read(s)));
+                    break;
+                case ADDRTCNMAP:
+                    mapStack.push(AddressedTCN.addressedToNormal(TCN.readMap(Tools.stringToMap(s))));
+                    break;
+                case JSON:
+                case JSON_READABLE:
+                    mapStack.push(JSON.read(s));
+                    break;
+            }
+            mapKeyStack.push("");
+            panel.removeAll();
+            panel.repaint();
+            display(list);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Thats not a " + type + " file!");
+            return false;
+        }
+        return true;
+    }
     
     public static void create(Type type) {
         Main.type = type;
@@ -91,7 +127,7 @@ public class TCNFormats {
                 frame.dispose();
                 frame.setVisible(false);
                 frame = null;
-                new Thread(() -> Main.main(null)).start();
+                new Thread(() -> Main.main(new String[0])).start();
             }
         });
         list.addButton(new JButton("Save as"), (jButton, jPanel, jButtonList) -> {
