@@ -23,10 +23,10 @@ public class Main {
     static FileRW file;
     static JFrame frame;
     static JPanel panel;
-    
+
     static Type type;
     static JButtonList list;
-    
+
     enum Type {
         MAP,
         TCN,
@@ -36,7 +36,7 @@ public class Main {
         JSON,
         JSON_READABLE,
     }
-    
+
     static String file(boolean b) {
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new File(".").getAbsoluteFile());
@@ -123,7 +123,7 @@ public class Main {
             list.addButton(new JButton("Load Map"), (jButton, jPanel, jButtonList) -> {
                 panel = jPanel;
                 type = Type.MAP;
-                String mapFile = file(true); //JOptionPane.showInputDialog("Please input a map file: ")
+                String mapFile = file(true);
                 try {
                     if (mapFile == null)
                         throw new NullPointerException();
@@ -201,9 +201,9 @@ public class Main {
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
-    
+
     private static void create(JPanel jPanel, JButtonList list) {
-        String mapFile = file(false); // JOptionPane.showInputDialog("Please input a file: ")
+        String mapFile = file(false);
         if(mapFile == null)
             return;
         jPanel.removeAll();
@@ -217,7 +217,7 @@ public class Main {
         mapKeyStack.push("");
         display(list, mapStack.peek());
     }
-    
+
     private static void display(JButtonList list, Map<String, String> map) {
         list.pane.removeAll();
         update(list);
@@ -239,25 +239,19 @@ public class Main {
             }
         }
     }
-    
+
     private static String val(String val) {
-        switch (type) {
-            case TCNMAP:
-            case TCN:
-                return val.replaceAll("%C", ":").replaceAll("%P", "%");
-        }
+        if(type == Type.TCN || type == Type.TCNMAP)
+            return val.replaceAll("%C", ":").replaceAll("%P", "%");
         return val;
     }
-    
+
     private static String sval(String val) {
-        switch (type) {
-            case TCNMAP:
-            case TCN:
-                return val.replaceAll("%", "%P").replaceAll(":", "%C");
-        }
+        if(type == Type.TCN || type == Type.TCNMAP)
+            return val.replaceAll("%", "%P").replaceAll(":", "%C");
         return val;
     }
-    
+
     private static Map<String, String> load(String map, boolean b) {
         if(b) {
             try {
@@ -280,7 +274,7 @@ public class Main {
         }
         return null;
     }
-    
+
     private static void update(JButtonList list) {
         list.addButton(new JButton("Back"), (jButton, jPanel, jButtonList) -> {
             try {

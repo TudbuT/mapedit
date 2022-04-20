@@ -19,7 +19,7 @@ import static tudbut.mapedit.Main.*;
 public class TCNFormats {
     private static final Stack<String> mapKeyStack = new Stack<>();
     private static final Stack<TCN> mapStack = new Stack<>();
-    
+
     public static void go(Type type) {
         try {
             String file = file(true);
@@ -89,12 +89,12 @@ public class TCNFormats {
         }
         return true;
     }
-    
+
     public static void create(Type type) {
         Main.type = type;
         create(panel, list);
     }
-    
+
     private static void create(JPanel jPanel, JButtonList list) {
         String mapFile = file(false); // JOptionPane.showInputDialog("Please input a file: ")
         if(mapFile == null)
@@ -110,11 +110,14 @@ public class TCNFormats {
         mapKeyStack.push("");
         display(list);
     }
-    
+
     private static void display(JButtonList list) {
         list.pane.removeAll();
         list.pane.repaint();
         boolean array = mapStack.peek().isArray;
+        if(array) {
+            mapStack.push(TCNArray.fromTCN(mapStack.pop()).toTCN());
+        }
         list.addButton(new JButton("Back"), (jButton, jPanel, jButtonList) -> {
             try {
                 mapStack.get(mapStack.size() - 2).set(mapKeyStack.pop(), mapStack.pop());
@@ -274,7 +277,7 @@ public class TCNFormats {
             display(jButtonList);
         });
         list.addButton(new JButton(new StringArray(mapKeyStack.toArray(new String[0])).join("/") + "/"), (jButton, jPanel, jButtonList) -> {});
-    
+
         for (String key : mapStack.peek().map.keys()) {
             if(mapStack.peek().getSub(key) != null) {
                 list.addButton(new JButton((mapStack.peek().getSub(key).isArray ? "[ARA] " : "[SUB] ") + key), (jButton, jPanel, jButtonList) -> {
@@ -300,31 +303,19 @@ public class TCNFormats {
             }
         }
     }
-    
+
     private static void save(FileRW file, Type type) {
         TCN toWrite = new TCN();
-        if (type == Type.TCN) {
+        if (type == Type.TCN || type == Type.TCNMAP || type == Type.JSON || type == Type.JSON_READABLE) {
             toWrite = mapStack.peek();
         }
-        else if (type == Type.TCNMAP) {
-            toWrite = mapStack.peek();
-        }
-        else if (type == Type.ADDRTCN) {
+        else if (type == Type.ADDRTCN || type == Type.ADDRTCNMAP) {
             toWrite = AddressedTCN.normalToAddressed(mapStack.peek());
-        }
-        else if (type == Type.ADDRTCNMAP) {
-            toWrite = AddressedTCN.normalToAddressed(mapStack.peek());
-        }
-        else if (type == Type.JSON) {
-            toWrite = mapStack.peek();
-        }
-        else if (type == Type.JSON_READABLE) {
-            toWrite = mapStack.peek();
         }
         for (String key : toWrite.map.keys()) {
             TCN.deepConvert(key, toWrite.get(key), toWrite);
         }
-        if (type == Type.TCN) {
+        if (type == Type.TCN || type == Type.ADDRTCN) {
             try {
                 file.setContent(toWrite.toString());
             }
@@ -332,23 +323,7 @@ public class TCNFormats {
                 ioException.printStackTrace();
             }
         }
-        else if (type == Type.TCNMAP) {
-            try {
-                file.setContent(Tools.mapToString(toWrite.toMap()));
-            }
-            catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
-        }
-        else if (type == Type.ADDRTCN) {
-            try {
-                file.setContent(toWrite.toString());
-            }
-            catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
-        }
-        else if (type == Type.ADDRTCNMAP) {
+        else if (type == Type.TCNMAP || type == Type.ADDRTCNMAP) {
             try {
                 file.setContent(Tools.mapToString(toWrite.toMap()));
             }
