@@ -317,6 +317,7 @@ public class TCNFormats {
         }
         if (type == Type.TCN || type == Type.ADDRTCN) {
             try {
+                toWrite.type = "TCN";
                 file.setContent(toWrite.toString());
             }
             catch (IOException ioException) {

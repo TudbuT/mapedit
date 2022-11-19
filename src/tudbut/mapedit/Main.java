@@ -102,7 +102,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        frame = new JFrame("MapEdit v3.4.0");
+        frame = new JFrame("MapEdit v3.4.1");
         try {
             frame.setIconImage(ImageIO.read(Objects.requireNonNull(ClassLoader.getSystemResourceAsStream("icon.png"))));
         } catch (Exception e) {

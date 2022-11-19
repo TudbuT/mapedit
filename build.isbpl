@@ -1,0 +1,8 @@
+"builder.isbpl" include
+
+"tudbut.mapedit.Main" =mainClass
+"mapedit" =name
+
+func dependencies {
+    "../tuddylib/TuddyLIB.jar" file
+}
